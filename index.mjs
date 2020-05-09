@@ -28,16 +28,19 @@ export default function rollupConfigPkg(outputName = "index", umdName) {
     input: `./src/${INPUT_NAME}`,
     output: [
       {
+        exports: "named",
         file: `./dist/${OUTPUT_NAME}.cjs`,
         format: "cjs",
         sourcemap: true,
       },
       {
+        exports: "named",
         file: `./dist/${OUTPUT_NAME}.mjs`,
         format: "es",
         sourcemap: true,
       },
       {
+        exports: "named",
         file: `./dist/${OUTPUT_NAME}.js`,
         format: "umd",
         globals: { moment: "moment" },
