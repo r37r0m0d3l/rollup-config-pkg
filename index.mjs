@@ -10,8 +10,13 @@ import terser from "rollup-plugin-terser";
 // argv["config-*"]
 // example "rollup:dev": "rollup --config rollup.config.mjs --config-some value",
 
-export default function rollupConfigPkg(outputName, umdName) {
-  if (!outputName) {
+/**
+ * @param {string=} outputName
+ * @param {string=} umdName
+ * @returns {{output: [{file: string, sourcemap: boolean, format: string}, {file: string, sourcemap: boolean, format: string}, {file: string, sourcemap: boolean, globals: {moment: string}, format: string, name: *}], input: string, external: [], plugins: ({transform: transform, load: (function(*): *), name: string, resolveId: resolveId}|{name: string, options(*=): {external: []}}|Plugin|boolean)[]}}
+ */
+export default function rollupConfigPkg(outputName = "index", umdName) {
+  if (!outputName || typeof outputName !== "string") {
     throw new Error("`outputName` must be defined");
   }
   const OUTPUT_NAME = outputName;
@@ -42,6 +47,7 @@ export default function rollupConfigPkg(outputName, umdName) {
     ],
     plugins: [
       babel({
+        babelrc: false,
         exclude: "node_modules/**",
         presets: [
           [
@@ -56,7 +62,9 @@ export default function rollupConfigPkg(outputName, umdName) {
         plugins: ["@babel/plugin-proposal-class-properties", "@babel/plugin-proposal-private-methods"],
       }),
       autoExternal(),
-      resolve(),
+      resolve({
+        preferBuiltins: true,
+      }),
       commonjs(),
       !IS_DEV &&
         terser.terser({
