@@ -2,8 +2,10 @@
 import autoExternal from "rollup-plugin-auto-external";
 import babel from "rollup-plugin-babel";
 import commonjs from "@rollup/plugin-commonjs";
-import resolve from "@rollup/plugin-node-resolve";
-import terser from "rollup-plugin-terser";
+import rollupPluginNodeResolve from "@rollup/plugin-node-resolve";
+import { terser } from "rollup-plugin-terser";
+
+const { nodeResolve } = rollupPluginNodeResolve;
 
 // import argh from "argh";
 // const { argv } = argh;
@@ -13,9 +15,10 @@ import terser from "rollup-plugin-terser";
 /**
  * @param {string=} outputName
  * @param {string=} umdName
+ * @param {object=} override
  * @returns {{output: [{file: string, sourcemap: boolean, format: string}, {file: string, sourcemap: boolean, format: string}, {file: string, sourcemap: boolean, globals: {moment: string}, format: string, name: *}], input: string, external: [], plugins: ({transform: transform, load: (function(*): *), name: string, resolveId: resolveId}|{name: string, options(*=): {external: []}}|Plugin|boolean)[]}}
  */
-export default function rollupConfigPkg(outputName = "index", umdName) {
+export default function rollupConfigPkg(outputName = "index", umdName, override) {
   if (!outputName || typeof outputName !== "string") {
     throw new Error("`outputName` must be defined");
   }
@@ -67,24 +70,26 @@ export default function rollupConfigPkg(outputName = "index", umdName) {
         plugins: ["@babel/plugin-proposal-class-properties", "@babel/plugin-proposal-private-methods"],
       }),
       autoExternal(),
-      resolve({
+      nodeResolve({
         preferBuiltins: true,
       }),
       commonjs(),
       !IS_DEV &&
-        terser.terser({
+        terser({
           keep_classnames: true,
           keep_fnames: true,
           output: {
             comments: false,
           },
-          sourcemap: true,
           warnings: true,
         }),
     ],
   };
   if (!umdName) {
     delete config.output[2];
+  }
+  if (override && typeof override === "object") {
+    Object.assign(config, override);
   }
   return config;
 }
